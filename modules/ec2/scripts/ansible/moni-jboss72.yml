@@ -1,0 +1,18 @@
+# Monitoring Application in JBOSS
+---
+- hosts: moni-jboss72  
+  become: yes
+
+  roles:
+    - openjdk-11
+    - jboss-eap-7.2
+
+  vars_files:
+  - group_vars/moni-jboss72
+  become: yes
+
+  tasks:
+    - name: Restart JBOSS
+      service:
+        name: jboss-eap
+        state: restarted

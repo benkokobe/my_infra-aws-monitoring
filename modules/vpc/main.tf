@@ -7,8 +7,8 @@ resource "aws_vpc" "some_custom_vpc" {
 }
 
 resource "aws_subnet" "some_public_subnet" {
-  vpc_id            = aws_vpc.some_custom_vpc.id
-  cidr_block        = var.public_sub_1_cidr
+  vpc_id     = aws_vpc.some_custom_vpc.id
+  cidr_block = var.public_sub_1_cidr
 
   tags = {
     Name = "My monitoring Subnet - public"
@@ -16,8 +16,8 @@ resource "aws_subnet" "some_public_subnet" {
 }
 
 resource "aws_subnet" "some_private_subnet" {
-  vpc_id            = aws_vpc.some_custom_vpc.id
-  cidr_block        = var.private_sub_1_cidr
+  vpc_id     = aws_vpc.some_custom_vpc.id
+  cidr_block = var.private_sub_1_cidr
 
   tags = {
     Name = "My monitoring - private"

@@ -1,0 +1,12 @@
+# Location for Jboss EAP binary
+jboss_archive: /opt/jboss-eap-jee8-7.2.4.GA.zip
+
+# Installation directory for Jboss EAP setup
+jboss_installation_dir: /opt/jboss-eap
+
+
+# Jboss EAP user for task execution
+jboss_user: jboss-eap
+
+# Jboss EAP group for task execution
+jboss_group: jboss-eap

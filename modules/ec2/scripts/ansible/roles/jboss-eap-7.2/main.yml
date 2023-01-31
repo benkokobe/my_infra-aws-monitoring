@@ -1,0 +1,94 @@
+
+---
+
+- name: create folders
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ jboss_installation_dir }}"
+    - /opt/temp-folder
+
+
+- name: "Add group {{ jboss_group }}"
+  group:
+    name: "{{ jboss_group }}"
+
+- name: "Add user {{ jboss_user }}"
+  user:
+    name: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    home: "{{ jboss_installation_dir }}"
+
+- name: Change ownership of jboss installation
+  file:
+    path: "{{ jboss_installation_dir }}/"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    state: directory
+    recurse: yes
+
+- name: Extract archive
+  unarchive:
+    remote_src: yes
+    src: "{{ jboss_archive }}"
+    dest: /opt/temp-folder
+
+- name: "Moving contents to {{ jboss_installation_dir }}"
+  shell: "cp -r temp-folder/*/* {{ jboss_installation_dir }}/"
+  args:
+    chdir: /opt/
+
+- name: Ansible delete to cleanup test environment
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ jboss_archive }}"
+    - /opt/temp-folder
+
+- name: change ownership
+  file:
+    path: "{{ jboss_installation_dir }}/"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: 0755
+    recurse: yes
+
+- name: Copy JBoss EAP Service Conf File
+  copy:
+    src: "{{ jboss_installation_dir }}/bin/init.d/jboss-eap.conf"
+    dest: /etc/default/jboss-eap.conf
+    remote_src: True
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: 0755
+
+- name: change the contents of jboss-eap.conf file
+  lineinfile:
+    path: /etc/default/jboss-eap.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: 0755
+  with_items:
+    - { regexp: '# JBOSS_USER=jboss-eap', line: "JBOSS_USER={{ jboss_user }}" }
+    - { regexp: '# JBOSS_HOME="/opt/jboss-eap"', line: 'JBOSS_HOME="{{ jboss_installation_dir }}"' }
+    - { regexp: '# JBOSS_CONSOLE_LOG="/var/log/jboss-eap/console.log"', line: 'JBOSS_CONSOLE_LOG="/var/log/{{ jboss_user }}/console.log"' }
+
+- name: Copy JBoss EAP Service File
+  copy:
+    src: "{{ jboss_installation_dir }}/bin/init.d/jboss-eap-rhel.sh"
+    dest: /etc/init.d/jboss-eap
+    remote_src: True
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: 0755
+
+- name: Enable jboss-eap Service
+  become: true
+  service:
+    name: jboss-eap
+    enabled: yes
+

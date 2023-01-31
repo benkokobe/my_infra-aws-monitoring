@@ -26,26 +26,53 @@ resource "aws_instance" "web_instance" {
   ami           = data.aws_ami.server_ami.id
   instance_type = "t2.nano"
 
-  key_name      = aws_key_pair.bko_auth.id
+  key_name = aws_key_pair.bko_auth.id
 
   subnet_id                   = var.public_subnet_id
   vpc_security_group_ids      = [var.public_sg_id]
   associate_public_ip_address = true
 
-  user_data = file("${path.module}/userdata.sh")
+  #user_data = file("${path.module}/userdata.sh")
+  provisioner "remote-exec" {
+    inline = [
+      "set -x",
+      "mkdir -p /tmp/scripts"
+    ]
+  }
 
   provisioner "file" {
     source      = "${path.module}/scripts/"
-    destination = "/tmp/"
-  }
-  connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = file("~/.ssh/bkokey")
-      host        = "${self.public_ip}"
+    destination = "/tmp/scripts"
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "set -x",
+      "sh /tmp/scripts/initialize-vm.sh"
+    ]
+  }
+
+    connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/.ssh/bkokey")
+    host        = self.public_ip
+  }
   tags = {
     "Name" : "Monitoring tool"
   }
+}
+#https://jhooq.com/terraform-null-resource/
+resource "null_resource" "launch-ansible" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      ansible --version"
+      sh /tmp/scripts/run-ansible.sh
+    EOT
+  }
+}
+
+output "finished" {
+  depends_on = [aws_instance.web_instance]
+  value      = {}
 }
