@@ -1,2 +1,2 @@
-[moni-jboss72 ]
+[moni-jboss72]
 localhost ansible_connection=local

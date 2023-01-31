@@ -33,24 +33,6 @@ resource "aws_instance" "web_instance" {
   associate_public_ip_address = true
 
   #user_data = file("${path.module}/userdata.sh")
-  provisioner "remote-exec" {
-    inline = [
-      "set -x",
-      "mkdir -p /tmp/scripts"
-    ]
-  }
-
-  provisioner "file" {
-    source      = "${path.module}/scripts/"
-    destination = "/tmp/scripts"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "set -x",
-      "sh /tmp/scripts/initialize-vm.sh"
-    ]
-  }
 
     connection {
     type        = "ssh"
@@ -59,16 +41,52 @@ resource "aws_instance" "web_instance" {
     host        = self.public_ip
   }
   tags = {
-    "Name" : "Monitoring tool"
+    "Name" : "Monitoring tool vm"
   }
 }
 #https://jhooq.com/terraform-null-resource/
-resource "null_resource" "launch-ansible" {
-  provisioner "local-exec" {
-    command = <<-EOT
-      ansible --version"
-      sh /tmp/scripts/run-ansible.sh
-    EOT
+resource "null_resource" "initialize-vm" {
+  depends_on = [aws_instance.web_instance]
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/.ssh/bkokey")
+    host        = aws_instance.web_instance.public_ip
+  }
+
+    provisioner "remote-exec" {
+    inline = [
+      "set -x",
+      "mkdir -p /tmp/scripts"
+    ]
+  }
+
+    provisioner "file" {
+    source      = "${path.module}/scripts/"
+    destination = "/tmp/scripts"
+  }
+
+    provisioner "remote-exec" {
+    inline = [
+      "set -x",
+      "sh /tmp/scripts/initialize-vm.sh"
+    ]
+  }
+}
+
+resource "null_resource" "ansible" {
+  depends_on = [null_resource.initialize-vm]
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/.ssh/bkokey")
+    host        = aws_instance.web_instance.public_ip
+  }
+    provisioner "remote-exec" {
+    inline = [
+      "ansible --version",
+      "sh /tmp/scripts/run-ansible.sh"
+    ]
   }
 }
 

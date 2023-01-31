@@ -15,7 +15,7 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update -y &&
 sudo sudo apt-get install docker-ce docker-ce-cli containerd.io -y &&
 sudo usermod -aG docker ubuntu &&
-
+sudo apt install unzip -y &&
 sudo apt install git -y &&
 sudo add-apt-repository "ppa:ansible/ansible" -y &&
 echo "skipped dd-apt-repository"

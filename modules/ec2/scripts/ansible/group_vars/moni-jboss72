@@ -1,5 +1,5 @@
 # Location for Jboss EAP binary
-jboss_archive: /opt/jboss-eap-jee8-7.2.4.GA.zip
+jboss_archive: /tmp/scripts/jboss-eap-7.2.4.zip
 
 # Installation directory for Jboss EAP setup
 jboss_installation_dir: /opt/jboss-eap
